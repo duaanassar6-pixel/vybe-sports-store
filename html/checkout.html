@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register | VYBE</title>
+<link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/auth.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet"></head>
+<body>
+<header class="navbar"><a href="index.html" class="logo">VYBE<span>.</span></a>
+<nav class="nav-links"><a href="index.html">Home</a><a href="products.html">Shop</a></nav>
+<div class="nav-actions"><a href="login.html">Login</a><a href="cart.html" class="cart-btn">Cart</a></div></header>
+<main class="auth-page">
+<<h1>Checkout</h1>
+<div id="checkoutBox">
+  <form id="checkoutForm">
+    <div id="summary"></div>
+    <label>Delivery address<textarea id="address" rows="3" required minlength="8"></textarea></label>
+    <label>Phone<input id="phone" type="tel" required></label>
+    <p>Payment: cash on delivery (demo, no real payment).</p>
+    <button class="primary-btn">Place order</button>
+    <p id="message" class="auth-msg"></p>
+</form>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/main.js"></script>
+<script src="/js/auth.js"></script>
+</body></html>
