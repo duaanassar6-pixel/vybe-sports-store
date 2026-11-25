@@ -1,0 +1,93 @@
+async function loadProductDetails() {
+    const container = document.getElementById("product-details");
+
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("id");
+
+    if (!productId) {
+        container.textContent = "Product ID is missing.";
+        return;
+    }
+
+    const { data: product, error } = await supabaseClient
+        .from("product")
+        .select("*, category(name, slug)")
+        .eq("product_id", productId)
+        .single();
+
+    if (error || !product) {
+        console.error(error);
+        container.textContent = "Could not load product details.";
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="details-image">
+            <img
+                src="../images/${vybe.esc(product.image_url)}"
+                alt="${vybe.esc(product.name)}"
+            >
+        </div>
+
+        <div class="details-info">
+
+            <p class="eyebrow">
+                ${vybe.esc(product.category?.name || "SPORTS EQUIPMENT")}
+            </p>
+
+            <h1>${vybe.esc(product.name)}</h1>
+
+            <p>${vybe.esc(product.description || "Quality sports equipment designed for performance.")}</p>
+
+            <div class="price">
+                ${vybe.money(product.price)}
+            </div>
+
+            <p>Available Stock: ${Number(product.stock)}</p>
+
+            <button
+                class="primary-btn"
+                id="add-to-cart"
+                ${Number(product.stock) <= 0 ? "disabled" : ""}
+            >
+                ${Number(product.stock) <= 0 ? "OUT OF STOCK" : "ADD TO CART →"}
+            </button>
+
+        </div>
+    `;
+
+    const addButton = document.getElementById("add-to-cart");
+
+    addButton.addEventListener("click", () => {
+        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+        const existing = cart.find(item =>
+            Number(item.product_id) === Number(product.product_id)
+        );
+
+        if (existing) {
+            if (Number(existing.quantity) >= Number(product.stock)) {
+                alert("Not enough stock available.");
+                return;
+            }
+
+            existing.quantity++;
+        } else {
+            if (Number(product.stock) <= 0) {
+                alert("This product is out of stock.");
+                return;
+            }
+
+            cart.push({
+                ...product,
+                quantity: 1
+            });
+        }
+
+        localStorage.setItem("cart", JSON.stringify(cart));
+
+        alert("Product added to cart!");
+    });
+}
+
+loadProductDetails();

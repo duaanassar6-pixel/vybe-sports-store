@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>VYBE | Shop</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- NAVIGATION -->
+    <header class="navbar">
+
+        <a href="index.html" class="logo">VYBE<span>.</span></a>
+
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="products.html" class="active">Shop</a>
+            <a href="index.html#categories">Categories</a>
+            <a href="index.html#about">About</a>
+        </nav>
+
+        <div class="nav-actions">
+            <a href="login.html">Login</a>
+            <a href="cart.html" class="cart-btn" id="cart-count">Cart (0)</a>
+        </div>
+
+    </header>
+
+
+    <!-- PAGE HEADER -->
+    <section class="categories">
+
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">FIND YOUR NEXT MOVE</p>
+                <h2>SHOP OUR <span>COLLECTION</span></h2>
+                <p class="section-description">
+                    Explore sports equipment designed for performance.
+                </p>
+            </div>
+        </div>
+
+
+        <!-- SEARCH AND FILTERS -->
+        <div class="shop-controls">
+
+            <input
+                type="text"
+                id="search-input"
+                placeholder="Search products..."
+            >
+
+            <select id="category-filter">
+                <option value="all">All Categories</option>
+                <option value="strength">Strength</option>
+                <option value="running">Running</option>
+                <option value="court">Court Sports</option>
+                <option value="cycling">Cycling</option>
+            </select>
+
+            <select id="sort-select">
+                <option value="default">Sort By</option>
+                <option value="low-high">Price: Low to High</option>
+                <option value="high-low">Price: High to Low</option>
+            </select>
+
+        </div>
+
+
+        <!-- PRODUCTS -->
+        <div id="product-grid" class="product-grid">
+
+            <p>Loading products...</p>
+
+        </div>
+
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer class="footer">
+
+        <div class="footer-brand">
+            <a href="index.html" class="logo">VYBE<span>.</span></a>
+            <p>FEEL THE ENERGY. MOVE YOUR WAY.</p>
+        </div>
+
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="products.html">Shop</a>
+            <a href="index.html#about">About</a>
+        </div>
+
+        <p class="copyright">
+            © 2026 VYBE. All rights reserved.
+        </p>
+
+    </footer>
+
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
+
+</body>
+</html>
