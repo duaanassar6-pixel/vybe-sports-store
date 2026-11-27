@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VYBE | Manage Products</title>
+
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -15,30 +16,33 @@
         }
 
         h1 {
-            font-size: 34px;
+            font-size: 36px;
             font-weight: 900;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
-        .subtitle {
-            color: #777;
-            margin-bottom: 30px;
+        h2 {
+            margin-bottom: 20px;
         }
 
         .product-form {
             background: #f7f7f7;
             padding: 25px;
-            margin-bottom: 35px;
-        }
-
-        .product-form h2 {
-            margin-bottom: 20px;
+            margin: 30px 0;
+            border-left: 4px solid #ff5a1f;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
+        }
+
+        .form-grid label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
 
         .form-grid input,
@@ -48,74 +52,65 @@
             padding: 12px;
             border: 1px solid #ddd;
             font-family: inherit;
+            box-sizing: border-box;
         }
 
-        .form-grid textarea {
-            grid-column: 1 / -1;
-        }
-
-        .admin-btn {
+        .admin-button {
             background: #171717;
             color: white;
-            padding: 13px 22px;
             border: none;
+            padding: 12px 20px;
             cursor: pointer;
-            font-family: inherit;
             font-weight: 700;
-            margin-top: 15px;
+            margin: 5px 0;
         }
 
-        .admin-btn:hover {
+        .admin-button:hover {
             background: #ff5a1f;
         }
 
-        .product-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px;
-        }
-
-        .product-table th,
-        .product-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .product-table th {
-            background: #171717;
-            color: white;
+        .delete-button {
+            background: #b91c1c;
         }
 
         .table-wrapper {
             overflow-x: auto;
         }
 
-        .action-btn {
-            padding: 8px 12px;
-            border: none;
-            cursor: pointer;
-            margin: 3px;
-            font-weight: 600;
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .edit-btn {
-            background: #ff5a1f;
-            color: white;
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
 
-        .delete-btn {
+        th {
             background: #171717;
             color: white;
         }
 
-        @media (max-width: 768px) {
+        td img {
+            width: 65px;
+            height: 65px;
+            object-fit: contain;
+        }
+
+        .low-stock {
+            color: #b91c1c;
+            font-weight: 700;
+        }
+
+        #message {
+            margin: 20px 0;
+        }
+
+        @media (max-width: 700px) {
             .form-grid {
                 grid-template-columns: 1fr;
-            }
-
-            h1 {
-                font-size: 26px;
             }
         }
     </style>
@@ -127,107 +122,384 @@
         <a href="index.html" class="logo">VYBE<span>.</span></a>
 
         <nav class="nav-links">
-            <a href="index.html">Home</a>
             <a href="admin.html">Dashboard</a>
-            <a href="admin-products.html" class="active">Products</a>
+            <a href="admin-products.html">Products</a>
             <a href="admin-orders.html">Orders</a>
         </nav>
     </header>
 
     <main class="admin-container">
 
-        <h1>PRODUCT MANAGEMENT</h1>
-        <p class="subtitle">Manage VYBE sports equipment.</p>
+        <h1>MANAGE PRODUCTS</h1>
+        <p>Add, update and manage VYBE products.</p>
 
-        <section class="product-form">
-            <h2 id="formTitle">Add New Product</h2>
+        <p id="message" aria-live="polite">
+            Verifying administrator access...
+        </p>
 
-            <form id="productForm">
-                <div class="form-grid">
+        <div id="adminContent" hidden>
 
-                    <input type="text" id="productName"
-                           placeholder="Product Name" required>
+            <section class="product-form">
 
-                    <select id="productCategory" required>
-                        <option value="">Select Category</option>
-                        <option value="Football">Football</option>
-                        <option value="Basketball">Basketball</option>
-                        <option value="Tennis">Tennis</option>
-                        <option value="Fitness">Fitness</option>
-                        <option value="Swimming">Swimming</option>
-                    </select>
+                <h2 id="formTitle">Add New Product</h2>
 
-                    <input type="number" id="productPrice"
-                           placeholder="Price (AED)"
-                           min="0" step="0.01" required>
+                <form id="productForm">
 
-                    <input type="number" id="productStock"
-                           placeholder="Stock Quantity"
-                           min="0" step="1" required>
+                    <input type="hidden" id="productId">
 
-                    <input type="text" id="productImage"
-                           placeholder="Image URL">
+                    <div class="form-grid">
 
-                    <textarea id="productDescription"
-                              placeholder="Product Description"
-                              rows="3"></textarea>
-                </div>
+                        <div>
+                            <label for="name">Product Name</label>
+                            <input id="name" maxlength="100" required>
+                        </div>
 
-                <button type="submit" class="admin-btn"
-                        id="saveButton">
-                    ADD PRODUCT
-                </button>
+                        <div>
+                            <label for="category">Category</label>
+                            <select id="category" required></select>
+                        </div>
 
-                <button type="button" class="admin-btn"
-                        id="cancelButton" hidden>
-                    CANCEL EDIT
-                </button>
-            </form>
-        </section>
+                        <div>
+                            <label for="price">Price (AED)</label>
+                            <input type="number" id="price"
+                                   min="0" max="99999999.99"
+                                   step="0.01" required>
+                        </div>
 
-        <section>
-            <h2>Product List</h2>
+                        <div>
+                            <label for="stock">Stock Quantity</label>
+                            <input type="number" id="stock"
+                                   min="0" max="2147483647"
+                                   step="1" required>
+                        </div>
+
+                        <div>
+                            <label for="image">Image File Name</label>
+                            <input id="image"
+                                   maxlength="150"
+                                   pattern="[A-Za-z0-9._-]+"
+                                   placeholder="product-image.png"
+                                   required>
+                        </div>
+
+                        <div>
+                            <label for="description">Description</label>
+                            <textarea id="description"
+                                      rows="3" required></textarea>
+                        </div>
+
+                    </div>
+
+                    <br>
+
+                    <button type="submit"
+                            id="saveButton"
+                            class="admin-button">
+                        ADD PRODUCT
+                    </button>
+
+                    <button type="button"
+                            class="admin-button"
+                            onclick="resetForm()">
+                        CLEAR
+                    </button>
+
+                </form>
+
+            </section>
+
+            <h2>Existing Products</h2>
 
             <div class="table-wrapper">
-                <table class="product-table">
+
+                <table>
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Product</th>
+                            <th>Image</th>
+                            <th>Name</th>
                             <th>Category</th>
-                            <th>Price (AED)</th>
+                            <th>Price</th>
                             <th>Stock</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
 
-                    <tbody id="productTableBody">
-                        <tr>
-                            <td colspan="6">
-                                Database connection pending.
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="productTable"></tbody>
                 </table>
+
             </div>
-        </section>
+
+        </div>
 
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/main.js"></script>
+
     <script>
-        // The product form and table are ready.
-        // Supabase CRUD operations will be added
-        // after the database schema is confirmed.
 
-        document.getElementById("productForm")
-            .addEventListener("submit", function(event) {
-                event.preventDefault();
+        const field = id => document.getElementById(id);
 
-                alert(
-                    "Product management will be enabled " +
-                    "after Supabase integration."
-                );
-            });
+        const message = field("message");
+        const form = field("productForm");
+
+        let adminProducts = [];
+
+        // Verify administrator access
+        async function checkAdmin() {
+
+            const user = await vybe.user();
+
+            if (!user) {
+                location.href = "login.html?next=admin-products.html";
+                return false;
+            }
+
+            const { data, error } = await supabaseClient
+                .rpc("is_admin");
+
+            if (error || data !== true) {
+                message.textContent =
+                    "Access denied. Administrators only.";
+                return false;
+            }
+
+            return true;
+        }
+
+        // Load categories
+        async function loadCategories() {
+
+            const { data, error } = await supabaseClient
+                .from("category")
+                .select("category_id, name")
+                .order("name");
+
+            if (error) throw error;
+
+            field("category").innerHTML = data.map(c => `
+                <option value="${Number(c.category_id)}">
+                    ${vybe.esc(c.name)}
+                </option>
+            `).join("");
+        }
+
+        // READ: Display products
+        async function loadAdminProducts() {
+
+            const { data, error } = await supabaseClient
+                .from("product")
+                .select("*, category(name)")
+                .order("product_id");
+
+            if (error) throw error;
+
+            adminProducts = data || [];
+
+            field("productTable").innerHTML =
+                adminProducts.map(p => `
+                    <tr>
+                        <td>${Number(p.product_id)}</td>
+
+                        <td>
+                            <img src="../images/${vybe.esc(p.image_url)}"
+                                 alt="${vybe.esc(p.name)}">
+                        </td>
+
+                        <td>${vybe.esc(p.name)}</td>
+
+                        <td>
+                            ${vybe.esc(p.category?.name || "")}
+                        </td>
+
+                        <td>${vybe.money(p.price)}</td>
+
+                        <td class="${p.stock <= 5 ? "low-stock" : ""}">
+                            ${Number(p.stock)}
+                        </td>
+
+                        <td>
+                            <button class="admin-button"
+                                    onclick="editProduct(${Number(p.product_id)})">
+                                EDIT
+                            </button>
+
+                            <button class="admin-button delete-button"
+                                    onclick="deleteProduct(${Number(p.product_id)})">
+                                DELETE
+                            </button>
+                        </td>
+                    </tr>
+                `).join("") ||
+                '<tr><td colspan="7">No products found.</td></tr>';
+        }
+
+        // Fill form with selected product
+        function editProduct(id) {
+
+            const p = adminProducts.find(
+                item => Number(item.product_id) === id
+            );
+
+            if (!p) return;
+
+            field("productId").value = p.product_id;
+            field("name").value = p.name;
+            field("description").value = p.description;
+            field("price").value = p.price;
+            field("stock").value = p.stock;
+            field("image").value = p.image_url;
+            field("category").value = p.category_id;
+
+            field("formTitle").textContent = "Edit Product";
+            field("saveButton").textContent = "UPDATE PRODUCT";
+
+            form.scrollIntoView({ behavior: "smooth" });
+        }
+
+        // Reset product form
+        function resetForm() {
+
+            form.reset();
+
+            field("productId").value = "";
+            field("formTitle").textContent = "Add New Product";
+            field("saveButton").textContent = "ADD PRODUCT";
+        }
+
+        // CREATE and UPDATE
+        form.addEventListener("submit", async event => {
+
+            event.preventDefault();
+
+            if (!await checkAdmin()) return;
+
+            const id = field("productId").value;
+
+            const product = {
+                name: field("name").value.trim(),
+                description: field("description").value.trim(),
+                price: Number(field("price").value),
+                stock: Number(field("stock").value),
+                image_url: field("image").value.trim(),
+                category_id: Number(field("category").value)
+            };
+
+            if (!product.name || !product.description) {
+                message.textContent =
+                    "Name and description cannot be empty.";
+                return;
+            }
+
+            field("saveButton").disabled = true;
+
+            try {
+
+                let result;
+
+                if (id) {
+
+                    result = await supabaseClient
+                        .from("product")
+                        .update(product)
+                        .eq("product_id", Number(id))
+                        .select("product_id")
+                        .single();
+
+                } else {
+
+                    result = await supabaseClient
+                        .from("product")
+                        .insert(product)
+                        .select("product_id")
+                        .single();
+                }
+
+                if (result.error) throw result.error;
+
+                resetForm();
+
+                message.textContent = id
+                    ? "Product updated successfully."
+                    : "Product added successfully.";
+
+                await loadAdminProducts();
+
+            } catch (error) {
+
+                console.error(error);
+                message.textContent =
+                    "Operation failed: " + error.message;
+
+            } finally {
+
+                field("saveButton").disabled = false;
+            }
+        });
+
+        // DELETE: Remove selected product
+        async function deleteProduct(id) {
+
+            if (!await checkAdmin()) return;
+
+            if (!confirm("Are you sure you want to delete this product?")) {
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from("product")
+                .delete()
+                .eq("product_id", id)
+                .select("product_id")
+                .single();
+
+            if (error) {
+
+                message.textContent = error.code === "23503"
+                    ? "Cannot delete a product linked to existing orders."
+                    : "Delete failed: " + error.message;
+
+                return;
+            }
+
+            message.textContent = "Product deleted successfully.";
+
+            if (Number(field("productId").value) === id) {
+                resetForm();
+            }
+
+            try {
+                await loadAdminProducts();
+            } catch (error) {
+                message.textContent =
+                    "Product deleted, but table refresh failed.";
+            }
+        }
+
+        // Initialize page
+        async function initialize() {
+
+            try {
+
+                if (!await checkAdmin()) return;
+
+                await loadCategories();
+                await loadAdminProducts();
+
+                field("adminContent").hidden = false;
+                message.textContent = "Product management ready.";
+
+            } catch (error) {
+
+                console.error(error);
+                message.textContent =
+                    "Could not load products: " + error.message;
+            }
+        }
+
+        initialize();
+
     </script>
 
 </body>
