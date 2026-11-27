@@ -1,0 +1,482 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VYBE | Manage Orders</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        .admin-container {
+            padding: 50px 7%;
+            min-height: 80vh;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-family: inherit;
+        }
+
+        .admin-button {
+            background: #171717;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .admin-button:hover {
+            background: #ff5a1f;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #171717;
+            color: white;
+        }
+
+        .order-details {
+            background: #f7f7f7;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 4px solid #ff5a1f;
+        }
+
+        .order-details p {
+            margin: 10px 0;
+            overflow-wrap: anywhere;
+        }
+
+        #message {
+            margin: 20px 0;
+        }
+
+        .status {
+            font-weight: 700;
+        }
+
+        .Pending { color: #b45309; }
+        .Processing { color: #2563eb; }
+        .Shipped { color: #7c3aed; }
+        .Delivered { color: #15803d; }
+        .Cancelled { color: #b91c1c; }
+    </style>
+</head>
+
+<body>
+
+    <header class="navbar">
+        <a href="index.html" class="logo">VYBE<span>.</span></a>
+
+        <nav class="nav-links">
+            <a href="admin.html">Dashboard</a>
+            <a href="admin-products.html">Products</a>
+            <a href="admin-orders.html">Orders</a>
+        </nav>
+    </header>
+
+    <main class="admin-container">
+
+        <h1>MANAGE ORDERS</h1>
+        <p>View customer orders and manage their status.</p>
+
+        <p id="message" aria-live="polite">
+            Verifying administrator access...
+        </p>
+
+        <div id="adminContent" hidden>
+
+            <div class="filters">
+
+                <select id="statusFilter">
+                    <option value="All">All Orders</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+
+                <button class="admin-button"
+                        onclick="loadOrders()">
+                    REFRESH ORDERS
+                </button>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Update Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="ordersTable"></tbody>
+                </table>
+
+            </div>
+
+            <section id="orderDetails"
+                     class="order-details" hidden>
+
+                <h2>Order Details</h2>
+
+                <div id="detailsContent"></div>
+
+                <br>
+
+                <button class="admin-button"
+                        onclick="closeDetails()">
+                    CLOSE
+                </button>
+
+            </section>
+
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+
+        const field = id => document.getElementById(id);
+        const message = field("message");
+
+        let adminOrders = [];
+
+        const statuses = [
+            "Pending",
+            "Processing",
+            "Shipped",
+            "Delivered",
+            "Cancelled"
+        ];
+
+        // Verify administrator access
+        async function checkAdmin() {
+
+            const user = await vybe.user();
+
+            if (!user) {
+                location.href = "login.html?next=admin-orders.html";
+                return false;
+            }
+
+            const { data, error } = await supabaseClient
+                .rpc("is_admin");
+
+            if (error || data !== true) {
+                message.textContent =
+                    "Access denied. Administrators only.";
+                return false;
+            }
+
+            return true;
+        }
+
+        // Retrieve customer orders
+        async function loadOrders() {
+
+            try {
+
+                if (!await checkAdmin()) return;
+
+                const { data, error } = await supabaseClient
+                    .from("orders")
+                    .select("*, customers(full_name, email)")
+                    .order("order_date", { ascending: false });
+
+                if (error) throw error;
+
+                adminOrders = data || [];
+
+                displayOrders();
+
+                field("adminContent").hidden = false;
+
+                message.textContent =
+                    adminOrders.length + " orders loaded.";
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.textContent =
+                    "Could not load orders: " + error.message;
+            }
+        }
+
+        // Display and filter orders
+        function displayOrders() {
+
+            const filter = field("statusFilter").value;
+
+            const filtered = adminOrders.filter(order =>
+                filter === "All" || order.status === filter
+            );
+
+            field("ordersTable").innerHTML = filtered.map(o => `
+
+                <tr>
+
+                    <td>#${Number(o.order_id)}</td>
+
+                    <td>
+                        ${vybe.esc(o.customers?.full_name || "Customer")}
+                    </td>
+
+                    <td>
+                        ${new Date(o.order_date).toLocaleDateString()}
+                    </td>
+
+                    <td>${vybe.money(o.total_amount)}</td>
+
+                    <td class="status ${vybe.esc(o.status)}">
+                        ${vybe.esc(o.status)}
+                    </td>
+
+                    <td>
+
+                        <select id="status-${Number(o.order_id)}">
+
+                            ${statuses.map(status => `
+                                <option value="${status}"
+                                    ${status === o.status ? "selected" : ""}>
+                                    ${status}
+                                </option>
+                            `).join("")}
+
+                        </select>
+
+                        <button class="admin-button"
+                                onclick="updateStatus(${Number(o.order_id)})">
+                            SAVE
+                        </button>
+
+                    </td>
+
+                    <td>
+                        <button class="admin-button"
+                                onclick="viewDetails(${Number(o.order_id)})">
+                            VIEW
+                        </button>
+                    </td>
+
+                </tr>
+
+            `).join("") ||
+            '<tr><td colspan="7">No orders found.</td></tr>';
+        }
+
+        // Update order status
+        async function updateStatus(id) {
+
+            try {
+
+                if (!await checkAdmin()) return;
+
+                const newStatus = field("status-" + id).value;
+
+                if (!statuses.includes(newStatus)) return;
+
+                const order = adminOrders.find(
+                    o => Number(o.order_id) === id
+                );
+
+                if (!order || order.status === newStatus) return;
+
+                if (newStatus === "Cancelled") {
+
+                    if (!confirm(
+                        "Cancel this order? Stock will not be automatically restored."
+                    )) return;
+                }
+
+                const { error } = await supabaseClient
+                    .from("orders")
+                    .update({ status: newStatus })
+                    .eq("order_id", id)
+                    .select("order_id")
+                    .single();
+
+                if (error) throw error;
+
+                closeDetails();
+
+                await loadOrders();
+
+                message.textContent =
+                    "Order #" + id + " updated to " + newStatus + ".";
+
+            } catch (error) {
+
+                message.textContent =
+                    "Update failed: " + error.message;
+            }
+        }
+
+        // View customer and order item details
+        async function viewDetails(id) {
+
+            try {
+
+                if (!await checkAdmin()) return;
+
+                const order = adminOrders.find(
+                    o => Number(o.order_id) === id
+                );
+
+                if (!order) return;
+
+                const { data, error } = await supabaseClient
+                    .from("order_items")
+                    .select("quantity, unit_price, product(name)")
+                    .eq("order_id", id);
+
+                if (error) throw error;
+
+                field("detailsContent").innerHTML = `
+
+                    <p><strong>Order ID:</strong> #${Number(order.order_id)}</p>
+
+                    <p><strong>Customer:</strong>
+                        ${vybe.esc(order.customers?.full_name)}
+                    </p>
+
+                    <p><strong>Email:</strong>
+                        ${vybe.esc(order.customers?.email)}
+                    </p>
+
+                    <p><strong>Phone:</strong>
+                        ${vybe.esc(order.phone)}
+                    </p>
+
+                    <p><strong>Shipping Address:</strong>
+                        ${vybe.esc(order.shipping_address)}
+                    </p>
+
+                    <p><strong>Status:</strong>
+                        ${vybe.esc(order.status)}
+                    </p>
+
+                    <br>
+
+                    <h3>Ordered Products</h3>
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                ${data.map(item => `
+
+                                    <tr>
+
+                                        <td>
+                                            ${vybe.esc(item.product?.name)}
+                                        </td>
+
+                                        <td>${Number(item.quantity)}</td>
+
+                                        <td>${vybe.money(item.unit_price)}</td>
+
+                                        <td>
+                                            ${vybe.money(item.quantity * item.unit_price)}
+                                        </td>
+
+                                    </tr>
+
+                                `).join("") ||
+                                '<tr><td colspan="4">No items found.</td></tr>'}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <p><strong>Total:</strong>
+                        ${vybe.money(order.total_amount)}
+                    </p>
+                `;
+
+                field("orderDetails").hidden = false;
+
+                field("orderDetails").scrollIntoView({
+                    behavior: "smooth"
+                });
+
+            } catch (error) {
+
+                message.textContent =
+                    "Could not load order details: " + error.message;
+            }
+        }
+
+        function closeDetails() {
+            field("orderDetails").hidden = true;
+            field("detailsContent").innerHTML = "";
+        }
+
+        field("statusFilter").addEventListener(
+            "change", displayOrders
+        );
+
+        loadOrders();
+
+    </script>
+
+</body>
+</html>
