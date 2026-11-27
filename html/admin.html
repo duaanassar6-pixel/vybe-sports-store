@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VYBE | Admin Dashboard</title>
+
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <style>
         .admin-container {
             padding: 50px 7%;
@@ -29,14 +31,14 @@
 
         .admin-cards {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-bottom: 40px;
         }
 
         .admin-card {
             background: #f7f7f7;
-            padding: 30px;
+            padding: 25px;
             border-left: 4px solid #ff5a1f;
         }
 
@@ -45,15 +47,17 @@
             margin-bottom: 15px;
         }
 
-        .admin-card .value {
-            font-size: 32px;
+        .value {
+            font-size: 25px;
             font-weight: 800;
+            overflow-wrap: anywhere;
         }
 
         .admin-actions {
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
+            margin-bottom: 35px;
         }
 
         .admin-button {
@@ -62,19 +66,28 @@
             padding: 15px 25px;
             font-size: 13px;
             font-weight: 700;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
         }
 
         .admin-button:hover {
             background: #ff5a1f;
         }
 
-        @media (max-width: 768px) {
+        #message {
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1000px) {
+            .admin-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
             .admin-cards {
                 grid-template-columns: 1fr;
-            }
-
-            .admin-heading h1 {
-                font-size: 28px;
             }
         }
     </style>
@@ -87,7 +100,7 @@
 
         <nav class="nav-links">
             <a href="index.html">Home</a>
-            <a href="admin.html" class="active">Dashboard</a>
+            <a href="admin.html">Dashboard</a>
             <a href="admin-products.html">Products</a>
             <a href="admin-orders.html">Orders</a>
         </nav>
@@ -97,40 +110,290 @@
 
         <div class="admin-heading">
             <h1>ADMIN DASHBOARD</h1>
-            <p>Manage your VYBE sports store.</p>
+            <p>Manage and monitor your VYBE sports store.</p>
         </div>
 
-        <section class="admin-cards">
+        <p id="message">Verifying administrator access...</p>
 
-            <div class="admin-card">
-                <h3>Total Products</h3>
-                <p class="value" id="totalProducts">—</p>
+        <div id="dashboard" hidden>
+
+            <section class="admin-cards">
+
+                <div class="admin-card">
+                    <h3>Total Products</h3>
+                    <p class="value" id="totalProducts">—</p>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Total Orders</h3>
+                    <p class="value" id="totalOrders">—</p>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Total Sales (Delivered)</h3>
+                    <p class="value" id="totalSales">—</p>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Average Order Value (Delivered)</h3>
+                    <p class="value" id="averageOrder">—</p>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Low Stock Products</h3>
+                    <p class="value" id="lowStock">—</p>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Most Popular Product</h3>
+                    <p class="value" id="popularProduct">—</p>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Pending Orders</h3>
+                    <p class="value" id="pendingOrders">—</p>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Total Customers</h3>
+                    <p class="value" id="totalCustomers">—</p>
+                </div>
+
+            </section>
+
+            <div class="admin-actions">
+
+                <a href="admin-products.html" class="admin-button">
+                    MANAGE PRODUCTS
+                </a>
+
+                <a href="admin-orders.html" class="admin-button">
+                    MANAGE ORDERS
+                </a>
+
+                <button class="admin-button" onclick="loadDashboard()">
+                    REFRESH DATA
+                </button>
+
+                <button class="admin-button" onclick="logout()">
+                    LOGOUT
+                </button>
+
             </div>
 
-            <div class="admin-card">
-                <h3>Total Orders</h3>
-                <p class="value" id="totalOrders">—</p>
-            </div>
-
-            <div class="admin-card">
-                <h3>Total Sales</h3>
-                <p class="value" id="totalSales">—</p>
-            </div>
-
-        </section>
-
-        <div class="admin-actions">
-            <a href="admin-products.html" class="admin-button">
-                MANAGE PRODUCTS
-            </a>
-
-            <a href="admin-orders.html" class="admin-button">
-                MANAGE ORDERS
-            </a>
         </div>
 
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+
+        const message = document.getElementById("message");
+        const dashboard = document.getElementById("dashboard");
+
+        function display(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        // Verify administrator access
+        async function checkAdmin() {
+
+            const user = await vybe.user();
+
+            if (!user) {
+                window.location.href = "login.html?next=admin.html";
+                return false;
+            }
+
+            const { data, error } = await supabaseClient
+                .rpc("is_admin");
+
+            if (error) {
+                message.textContent = "Could not verify administrator access.";
+                return false;
+            }
+
+            if (data !== true) {
+                message.textContent = "Access denied. Administrators only.";
+                return false;
+            }
+
+            return true;
+        }
+
+        // Retrieve all records, including multiple pages
+        async function getRecords(table, columns, primaryKey) {
+
+            let records = [];
+            let start = 0;
+            const pageSize = 500;
+
+            while (true) {
+
+                const { data, error } = await supabaseClient
+                    .from(table)
+                    .select(columns)
+                    .order(primaryKey)
+                    .range(start, start + pageSize - 1);
+
+                if (error) throw error;
+
+                records.push(...data);
+
+                if (data.length < pageSize) break;
+
+                start += pageSize;
+            }
+
+            return records;
+        }
+
+        // Load dashboard analytics
+        async function loadDashboard() {
+
+            dashboard.hidden = true;
+            message.textContent = "Loading dashboard...";
+
+            try {
+
+                if (!await checkAdmin()) return;
+
+                const [products, orders, items, customers] =
+                    await Promise.all([
+
+                        getRecords(
+                            "product",
+                            "product_id, name, stock",
+                            "product_id"
+                        ),
+
+                        getRecords(
+                            "orders",
+                            "order_id, total_amount, status",
+                            "order_id"
+                        ),
+
+                        getRecords(
+                            "order_items",
+                            "order_item_id, order_id, product_id, quantity",
+                            "order_item_id"
+                        ),
+
+                        getRecords(
+                            "customers",
+                            "customer_id, role",
+                            "customer_id"
+                        )
+                    ]);
+
+                // KPI 1: Total products
+                display("totalProducts", products.length);
+
+                // KPI 2: Total orders
+                display("totalOrders", orders.length);
+
+                const deliveredOrders = orders.filter(
+                    order => order.status === "Delivered"
+                );
+
+                // KPI 3: Total delivered sales
+                const sales = deliveredOrders.reduce(
+                    (sum, order) => sum + Number(order.total_amount), 0
+                );
+
+                display("totalSales", vybe.money(sales));
+
+                // KPI 4: Average order value
+                const average = deliveredOrders.length
+                    ? sales / deliveredOrders.length
+                    : 0;
+
+                display("averageOrder", vybe.money(average));
+
+                // KPI 5: Low stock products
+                const lowStock = products.filter(
+                    product => Number(product.stock) <= 5
+                );
+
+                display("lowStock", lowStock.length);
+
+                // KPI 6: Most popular product
+                const validOrders = new Set(
+                    orders.filter(order => order.status !== "Cancelled")
+                          .map(order => order.order_id)
+                );
+
+                const quantities = {};
+
+                items.forEach(item => {
+
+                    if (!validOrders.has(item.order_id)) return;
+
+                    quantities[item.product_id] =
+                        (quantities[item.product_id] || 0)
+                        + Number(item.quantity);
+                });
+
+                const ranked = Object.entries(quantities)
+                    .sort((a, b) => b[1] - a[1]);
+
+                const popular = ranked.length
+                    ? products.find(
+                        p => p.product_id === Number(ranked[0][0])
+                    )
+                    : null;
+
+                display(
+                    "popularProduct",
+                    popular ? popular.name : "No orders yet"
+                );
+
+                // KPI 7: Pending orders
+                display(
+                    "pendingOrders",
+                    orders.filter(
+                        order => order.status === "Pending"
+                    ).length
+                );
+
+                // KPI 8: Total customers
+                display(
+                    "totalCustomers",
+                    customers.filter(
+                        customer => customer.role === "customer"
+                    ).length
+                );
+
+                dashboard.hidden = false;
+                message.textContent = "Dashboard updated successfully.";
+
+            } catch (error) {
+
+                dashboard.hidden = true;
+                console.error(error);
+                message.textContent =
+                    "Could not load dashboard data. Check database permissions.";
+            }
+        }
+
+        // Logout
+        async function logout() {
+
+            const { error } = await supabaseClient.auth.signOut();
+
+            if (error) {
+                message.textContent = "Logout failed.";
+                return;
+            }
+
+            window.location.href = "login.html";
+        }
+
+        loadDashboard();
+
+    </script>
+
 </body>
 </html>
-
