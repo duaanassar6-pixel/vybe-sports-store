@@ -8,9 +8,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const cart = JSON.parse(localStorage.getItem("cart") || "[]");
   if (!cart.length) { box.innerHTML = '<p>Your cart is empty. <a href="products.html">Browse products</a></p>'; return; }
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
   document.getElementById("summary").innerHTML =
-    cart.map(i => `<p>${i.qty} &times; ${vybe.esc(i.name)} &ndash; ${vybe.money(i.price * i.qty)}</p>`).join("") +
+    cart.map(i => `<p>${i.quantity} &times; ${vybe.esc(i.name)} &ndash; ${vybe.money(i.price * i.quantity)}</p>`).join("") +
     `<h3>Total: ${vybe.money(total)}</h3>`;
 
   // SELECT: pre-fill phone from the customer's profile
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (error) { btn.disabled = false; return vybe.msg(error.message); }
 
     // INSERT 2: the purchased products (stock is reduced by a trigger)
-    const rows = cart.map(i => ({ order_id: order.order_id, product_id: i.id, quantity: i.qty, unit_price: 0 }));
+    const rows = cart.map(i => ({ order_id: order.order_id, product_id: i.product_id, quantity: i.quantity, unit_price: 0 }));
     const { error: itemsError } = await supabaseClient.from("order_items").insert(rows);
     if (itemsError) {
       await supabaseClient.from("orders").delete().eq("order_id", order.order_id); // DELETE: undo the empty order
